@@ -13,8 +13,8 @@ world = World()
 # map_file = "maps/test_line.txt"
 # map_file = "maps/test_cross.txt"
 # map_file = "maps/test_loop.txt"
-map_file = "maps/test_loop_fork.txt"
-# map_file = "maps/main_maze.txt"
+# map_file = "maps/test_loop_fork.txt"
+map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph = literal_eval(open(map_file, "r").read())
@@ -24,7 +24,6 @@ world.load_graph(room_graph)
 world.print_rooms()
 
 player = Player(world.starting_room)
-
 # Fill this out with directions to walk
 # traversal_path = ['n', 'n']
 # traversal_path = ['s', 'w', 'e', 'n', 'n', 's']
@@ -42,23 +41,6 @@ def flip_dir(dir):
         return "w"
     else:
         return "error"
-
-
-class Queue():
-    def __init__(self):
-        self.queue = []
-
-    def enqueue(self, value):
-        self.queue.append(value)
-
-    def dequeue(self):
-        if self.size() > 0:
-            return self.queue.pop(0)
-        else:
-            return None
-
-    def size(self):
-        return len(self.queue)
 
 
 def dft_walker():
@@ -80,14 +62,22 @@ def dft_walker():
         # if there are not unexplored rooms, do this...
         if "?" not in visited[player.current_room.id].values():
             # pick a random room until you find an unexplored room
-            exits = player.current_room.get_exits()
-            random.shuffle(exits)
-            dir = exits[-1]
-            prev_room_id = player.current_room.id
-            # travel to the new room
-            player.travel(dir)
-            # log the direction in traversal path
-            traversal_path.append(dir)
+            # exits = player.current_room.get_exits()
+            # random.shuffle(exits)
+            # dir = exits[-1]
+            # prev_room_id = player.current_room.id
+            # # travel to the new room
+            # player.travel(dir)
+            # # log the direction in traversal path
+            # traversal_path.append(dir)
+
+            # another option
+            # keep slicing off end of traversal_path until you get to a room with unexplored exits
+            path_copy = traversal_path.copy()
+            while "?" not in visited[player.current_room.id].values():
+                backtrack = flip_dir(path_copy.pop())
+                player.travel(backtrack)
+                traversal_path.append(backtrack)
 
         else:
             # if there are unexplored rooms...
@@ -107,19 +97,14 @@ def dft_walker():
                 visited[prev_room_id][dir] = player.current_room.id
                 visited[player.current_room.id] = {}
                 visited[player.current_room.id][flip_dir(dir)] = prev_room_id
-        # print(visited)
 
 
 dft_walker()
-
-print(traversal_path)
-
 
 # TRAVERSAL TEST
 visited_rooms = set()
 player.current_room = world.starting_room
 visited_rooms.add(player.current_room)
-
 for move in traversal_path:
     player.travel(move)
     visited_rooms.add(player.current_room)
@@ -127,9 +112,37 @@ for move in traversal_path:
 if len(visited_rooms) == len(room_graph):
     print(
         f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
+    # traversal_path = []
 else:
     print("TESTS FAILED: INCOMPLETE TRAVERSAL")
     print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
+
+# print("1", traversal_path)
+while len(traversal_path) > 2000:
+    # count = 0
+    # while count < 2:
+    # count += 1
+    # initialize all lists and set player back to starting room
+    traversal_path = []
+    visited_rooms = set()
+    player.current_room = world.starting_room
+    visited_rooms.add(player.current_room)
+
+    # run the dft walker algorithm again
+    dft_walker()
+    # print("2", traversal_path)
+    player.current_room = world.starting_room
+    for move in traversal_path:
+        # print("move", move)
+        player.travel(move)
+        # print("room id", player.current_room.id)
+        visited_rooms.add(player.current_room)
+    if len(visited_rooms) == len(room_graph):
+        print(
+            f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
+    else:
+        print("TESTS FAILED: INCOMPLETE TRAVERSAL")
+        print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
 
 
 #######
