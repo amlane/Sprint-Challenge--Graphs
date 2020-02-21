@@ -44,37 +44,38 @@ def flip_dir(dir):
         return "error"
 
 
-# keep track of which rooms are visited
-visited = {}
-# put the first room in the dictionary with the list of exists
-visited[player.current_room.id] = player.current_room.get_exits()
+# keep track of which rooms are visited in a dictionary
+rooms = {}
+
+# put the first room in the dictionary with the list of exits
+rooms[player.current_room.id] = player.current_room.get_exits()
 # while the length of the visited rooms is less than the number of rooms in the graph - the first room
-while len(visited) < len(room_graph) - 1:
+while len(rooms) < len(room_graph) - 1:
     # if the current room has never been visited
-    if player.current_room.id not in visited:
-        # set the list of exits to the room in both dictionaries
-        visited[player.current_room.id] = player.current_room.get_exits()
-        last_move = backtrack_path[-1]
+    if player.current_room.id not in rooms:
+        # set the list of exits to the room in visited dictionary
+        rooms[player.current_room.id] = player.current_room.get_exits()
         # mark the room you came from as explored
-        visited[player.current_room.id].remove(last_move)
+        last_room = backtrack_path[-1]
+        rooms[player.current_room.id].remove(last_room)
     # if there's a dead end...
-    while len(visited[player.current_room.id]) < 1:
-        # go back
+    while len(rooms[player.current_room.id]) < 1:
         # remove the last direction from backtrack_path
         backtrack = backtrack_path.pop()
+        # travel back
         player.travel(backtrack)
+        # add the move to the traversal path
         traversal_path.append(backtrack)
-
+    # if there are unexplored rooms...
     else:
-        # if there are unexplored rooms...
-        # pick the first exit
-        exit = visited[player.current_room.id].pop(0)
-        # append it to the traversal path
-        traversal_path.append(exit)
+        # pick the last exit
+        last_exit = rooms[player.current_room.id].pop()
+        # add the move to the traversal path
+        traversal_path.append(last_exit)
         # store the reverse direction for going back
-        backtrack_path.append(flip_dir(exit))
+        backtrack_path.append(flip_dir(last_exit))
         # travel to the next room
-        player.travel(exit)
+        player.travel(last_exit)
 
 
 # TRAVERSAL TEST
