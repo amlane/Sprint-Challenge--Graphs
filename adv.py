@@ -117,11 +117,9 @@ else:
     print("TESTS FAILED: INCOMPLETE TRAVERSAL")
     print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
 
-# print("1", traversal_path)
+count = 0
 while len(traversal_path) > 2000:
-    # count = 0
-    # while count < 2:
-    # count += 1
+    count += 1
     # initialize all lists and set player back to starting room
     traversal_path = []
     visited_rooms = set()
@@ -144,7 +142,7 @@ while len(traversal_path) > 2000:
         print("TESTS FAILED: INCOMPLETE TRAVERSAL")
         print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
 
-
+print("Total attempts: ", count)
 #######
 # UNCOMMENT TO WALK AROUND
 #######
