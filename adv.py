@@ -12,9 +12,9 @@ world = World()
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "maps/test_line.txt"
 # map_file = "maps/test_cross.txt"
-map_file = "maps/test_loop.txt"
+# map_file = "maps/test_loop.txt"
 # map_file = "maps/test_loop_fork.txt"
-# map_file = "maps/main_maze.txt"
+map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph = literal_eval(open(map_file, "r").read())
@@ -49,7 +49,7 @@ def dft_walker():
 
     # put the first room in the dictionary
     visited[player.current_room.id] = {}
-    # while count < 100:
+    # while count < 50:
     #     count += 1
     while len(visited) < len(room_graph):
         # Sets any directions not yet explored to "?" in visited
@@ -87,6 +87,10 @@ def dft_walker():
             dir = exits[-1]
             # if the room is unexplored...
             # print(dir)
+            # if player.current_room.id == 0:
+            #     print(visited)
+            #     print(count)
+
             if visited[player.current_room.id][dir] == "?":
                 # remember the prev room id
                 prev_room_id = player.current_room.id
@@ -98,10 +102,12 @@ def dft_walker():
                 # in the previous room id, set the direction we traveled to the new room id
                 visited[prev_room_id][dir] = player.current_room.id
                 # # make sure you're not overwriting an existing room you've looped back around to...
-                # if player.current_room.id not in visited:
-                visited[player.current_room.id] = {}
+                if player.current_room.id not in visited:
+                    visited[player.current_room.id] = {}
                 # in the current room, set the flipped direction to the previous room id
                 visited[player.current_room.id][flip_dir(dir)] = prev_room_id
+
+    # print("final", visited)
 
 
 dft_walker()
