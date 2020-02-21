@@ -24,10 +24,11 @@ world.load_graph(room_graph)
 world.print_rooms()
 
 player = Player(world.starting_room)
-# Fill this out with directions to walk
-# traversal_path = ['n', 'n']
-# traversal_path = ['s', 'w', 'e', 'n', 'n', 's']
+# keep track
 traversal_path = []
+backtrack_path = []
+
+# make a function that returns the flipped direction
 
 
 def flip_dir(dir):
@@ -43,74 +44,38 @@ def flip_dir(dir):
         return "error"
 
 
-def dft_walker():
-    visited = {}
-    count = 0
+# keep track of which rooms are visited
+visited = {}
+# put the first room in the dictionary with the list of exists
+visited[player.current_room.id] = player.current_room.get_exits()
+# while the length of the visited rooms is less than the number of rooms in the graph - the first room
+while len(visited) < len(room_graph) - 1:
+    # if the current room has never been visited
+    if player.current_room.id not in visited:
+        # set the list of exits to the room in both dictionaries
+        visited[player.current_room.id] = player.current_room.get_exits()
+        last_move = backtrack_path[-1]
+        # mark the room you came from as explored
+        visited[player.current_room.id].remove(last_move)
+    # if there's a dead end...
+    while len(visited[player.current_room.id]) < 1:
+        # go back
+        # remove the last direction from backtrack_path
+        backtrack = backtrack_path.pop()
+        player.travel(backtrack)
+        traversal_path.append(backtrack)
 
-    # put the first room in the dictionary
-    visited[player.current_room.id] = {}
-    # while count < 50:
-    #     count += 1
-    while len(visited) < len(room_graph):
-        # Sets any directions not yet explored to "?" in visited
-        for direction in player.current_room.get_exits():
-            if direction not in visited[player.current_room.id]:
-                # if it doesn't, add it with a value of "?"
-                visited[player.current_room.id][direction] = "?"
-                # if it does, don't do anything - done
+    else:
+        # if there are unexplored rooms...
+        # pick the first exit
+        exit = visited[player.current_room.id].pop(0)
+        # append it to the traversal path
+        traversal_path.append(exit)
+        # store the reverse direction for going back
+        backtrack_path.append(flip_dir(exit))
+        # travel to the next room
+        player.travel(exit)
 
-        # if there are not unexplored rooms, do this...
-        if "?" not in visited[player.current_room.id].values():
-            # pick a random room until you find an unexplored room
-            # exits = player.current_room.get_exits()
-            # random.shuffle(exits)
-            # dir = exits[-1]
-            # prev_room_id = player.current_room.id
-            # # travel to the new room
-            # player.travel(dir)
-            # # log the direction in traversal path
-            # traversal_path.append(dir)
-
-            # another option
-            # keep slicing off end of traversal_path until you get to a room with unexplored exits
-            path_copy = traversal_path.copy()
-            while "?" not in visited[player.current_room.id].values():
-                backtrack = flip_dir(path_copy.pop())
-                player.travel(backtrack)
-                traversal_path.append(backtrack)
-
-        else:
-            # if there are unexplored rooms...
-            # picks an unexplored room and travels to it, updates the traversal path and updates visited
-            exits = player.current_room.get_exits()
-            random.shuffle(exits)
-            dir = exits[-1]
-            # if the room is unexplored...
-            # print(dir)
-            # if player.current_room.id == 0:
-            #     print(visited)
-            #     print(count)
-
-            if visited[player.current_room.id][dir] == "?":
-                # remember the prev room id
-                prev_room_id = player.current_room.id
-                # travel to the new room
-                player.travel(dir)
-                # log the direction in traversal path
-                traversal_path.append(dir)
-                # update the entry in visited ditionary
-                # in the previous room id, set the direction we traveled to the new room id
-                visited[prev_room_id][dir] = player.current_room.id
-                # # make sure you're not overwriting an existing room you've looped back around to...
-                if player.current_room.id not in visited:
-                    visited[player.current_room.id] = {}
-                # in the current room, set the flipped direction to the previous room id
-                visited[player.current_room.id][flip_dir(dir)] = prev_room_id
-
-    # print("final", visited)
-
-
-dft_walker()
 
 # TRAVERSAL TEST
 visited_rooms = set()
@@ -129,32 +94,6 @@ else:
 # print(traversal_path)
 
 
-count = 0
-while len(traversal_path) > 10000:
-    count += 1
-    # initialize all lists and set player back to starting room
-    traversal_path = []
-    visited_rooms = set()
-    player.current_room = world.starting_room
-    visited_rooms.add(player.current_room)
-
-    # run the dft walker algorithm again
-    dft_walker()
-    # print("2", traversal_path)
-    player.current_room = world.starting_room
-    for move in traversal_path:
-        # print("move", move)
-        player.travel(move)
-        # print("room id", player.current_room.id)
-        visited_rooms.add(player.current_room)
-    if len(visited_rooms) == len(room_graph):
-        print(
-            f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited")
-    else:
-        print("TESTS FAILED: INCOMPLETE TRAVERSAL")
-        print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
-
-print("Total attempts: ", count)
 #######
 # UNCOMMENT TO WALK AROUND
 #######
